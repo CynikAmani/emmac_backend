@@ -20,6 +20,7 @@ router.get('/', async (req, res) => {
         status,
         next_service_mileage
       FROM car_details
+      WHERE is_deleted = false
       ORDER BY created_at DESC
     `;
 

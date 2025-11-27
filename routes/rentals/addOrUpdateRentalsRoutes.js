@@ -182,6 +182,9 @@ router.post("/", uploadFields, async (req, res) => {
     const { sql, values } = buildInsertData(body, files, handlerId);
     const [result] = await db.query(sql, values);
 
+    // Update car status to Rented
+    await db.query("UPDATE car_details SET status = 'Rented' WHERE id = ?", [Number(body.car_id)]);
+
     return res.status(201).json({
       message: "Rental created successfully",
       rentalId: result.insertId
