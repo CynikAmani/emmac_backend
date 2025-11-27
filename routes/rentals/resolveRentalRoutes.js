@@ -120,6 +120,12 @@ router.post("/:id", async (req, res) => {
       [handlerId, rentalId]
     );
 
+    // Update car status to Available
+    await db.query(
+      "UPDATE car_details SET status = 'Available' WHERE id = ?",
+      [carId]
+    );
+
     return res.status(200).json({
       message: "Rental resolved successfully",
       rentalId,
