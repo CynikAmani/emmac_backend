@@ -30,6 +30,8 @@ import extendRentalRoutes from './rentals/extendRental.js';
 import getFleetAnalyticsRoutes from './garage/analytics/getFleetAnalyticsRoutes.js';
 import resetServiceMileageRoutes from './garage/analytics/resetServiceMileageRoutes.js';
 import updateInsuranceCOFExpiryDateRoutes from './garage/analytics/updateInsuranceCOFExpiryDateRoutes.js';
+import getCriticalAlertsRoutes from './alerts/getCriticalAlertsRoutes.js';
+import getNumOverdueRentalsRoutes from './alerts/getNumOverdueRentalsRoutes.js';
 
 
 const router = express.Router();
@@ -53,6 +55,7 @@ router.use('/api/users/profile', checkSession, getUserProfileDetailsRoutes);
 router.use('/api/users/updatePassword', checkSession, updatePasswordRoutes);
 
 
+
 //garage routes
 router.use('/api/addCar', checkSession, addCarRoutes);
 router.use('/api/getCarCollection', checkSession, getAllCarsRoutes);
@@ -69,6 +72,12 @@ router.use('/api/setPermissions', checkSession, checkAdmin, setPermissionsRoutes
 router.use('/api/getPermissions',checkSession, checkAdmin, getPermissionsRoutes);
 router.use('/api/getUserPermissions',checkSession, checkAdmin, getUserPermissionsRoutes);
 router.use('/api/toggleAdministrativePermissions', checkSession, checkAdmin, toggleAdministrativePermissionsRoutes);
+
+
+
+//alerts routes
+router.use('/api/getCriticalAlerts', checkSession, getCriticalAlertsRoutes);
+router.use('/api/getNumOverdueRentals', checkSession, getNumOverdueRentalsRoutes);
 
 
 
