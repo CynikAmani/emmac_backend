@@ -32,6 +32,7 @@ import resetServiceMileageRoutes from './garage/analytics/resetServiceMileageRou
 import updateInsuranceCOFExpiryDateRoutes from './garage/analytics/updateInsuranceCOFExpiryDateRoutes.js';
 import getCriticalAlertsRoutes from './alerts/getCriticalAlertsRoutes.js';
 import getNumOverdueRentalsRoutes from './alerts/getNumOverdueRentalsRoutes.js';
+import getDashboardStatsRoutes from './dashboard/getDashboardStats.js';
 
 
 const router = express.Router();
@@ -42,6 +43,10 @@ router.use('/api/login', loginRoutes);
 
 //logout route
 router.use('/api/logout', logout);
+
+
+//dashboard routes
+router.use('/api/getDashboardStats', checkSession, getDashboardStatsRoutes);
 
 
 //users routes
