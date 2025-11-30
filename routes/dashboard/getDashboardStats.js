@@ -1,4 +1,5 @@
 import express from 'express';
+import moment from 'moment';
 import { connectDB } from '../../config/db/connect.js';
 
 const router = express.Router();
@@ -90,17 +91,42 @@ async function getRentalsSummary(db) {
     FROM car_rentals
   `);
 
-  const [avgDelay] = await db.execute(`
-    SELECT AVG(TIMESTAMPDIFF(HOUR, expected_return_datetime, actual_return_datetime)) as avg_delay_hours
+  const [delayData] = await db.execute(`
+    SELECT 
+      expected_return_datetime,
+      actual_return_datetime,
+      TIMESTAMPDIFF(SECOND, expected_return_datetime, actual_return_datetime) as delay_seconds
     FROM car_rentals 
-    WHERE actual_return_datetime IS NOT NULL AND actual_return_datetime > expected_return_datetime
+    WHERE actual_return_datetime IS NOT NULL 
+      AND actual_return_datetime > expected_return_datetime
   `);
+
+  // Calculate average delay using moment for better accuracy
+  let averageDelay = { days: 0, hours: 0, formatted: "0 days 0 hours" };
+  
+  if (delayData.length > 0) {
+    const totalDelaySeconds = delayData.reduce((sum, row) => {
+      return sum + row.delay_seconds;
+    }, 0);
+    
+    const avgDelaySeconds = totalDelaySeconds / delayData.length;
+    const duration = moment.duration(avgDelaySeconds, 'seconds');
+    
+    const days = Math.floor(duration.asDays());
+    const hours = Math.floor(duration.asHours() % 24);
+    
+    averageDelay = {
+      days: days,
+      hours: hours,
+      formatted: `${days} day${days !== 1 ? 's' : ''} ${hours} hour${hours !== 1 ? 's' : ''}`
+    };
+  }
 
   return {
     active_rentals: rentalStatus[0].active_rentals,
     overdue_rentals: rentalStatus[0].overdue_rentals,
     resolved_rentals: rentalStatus[0].resolved_rentals,
-    average_delay_hours: avgDelay[0].avg_delay_hours || 0
+    average_delay: averageDelay
   };
 }
 
@@ -133,14 +159,18 @@ async function getCarUsage(db) {
 }
 
 async function getMonthlyTrend(db) {
+  const currentDate = moment();
+  const currentMonthStart = currentDate.startOf('month').format('YYYY-MM-DD');
+  const today = currentDate.format('YYYY-MM-DD');
+
   const [dailyRentals] = await db.execute(`
     SELECT DATE(collection_datetime) as day, COUNT(*) as rentals
     FROM car_rentals 
-    WHERE YEAR(collection_datetime) = YEAR(CURDATE()) 
-      AND MONTH(collection_datetime) = MONTH(CURDATE())
+    WHERE DATE(collection_datetime) BETWEEN ? AND ?
     GROUP BY DATE(collection_datetime)
+    HAVING rentals > 0
     ORDER BY day
-  `);
+  `, [currentMonthStart, today]);
 
   const [previousMonth] = await db.execute(`
     SELECT COUNT(*) as total
@@ -149,10 +179,8 @@ async function getMonthlyTrend(db) {
       AND MONTH(collection_datetime) = MONTH(CURDATE() - INTERVAL 1 MONTH)
   `);
 
-  const currentMonth = new Date().toISOString().slice(0, 7);
-
   return {
-    current_month: currentMonth,
+    current_month: currentDate.format('YYYY-MM'),
     daily_rentals: dailyRentals,
     total_this_month: dailyRentals.reduce((sum, day) => sum + day.rentals, 0),
     previous_month_total: previousMonth[0].total || 0
@@ -162,8 +190,7 @@ async function getMonthlyTrend(db) {
 async function getLastRentalInfo(db) {
   const [lastRental] = await db.execute(`
     SELECT 
-      MAX(collection_datetime) as last_rental_date,
-      TIMESTAMPDIFF(HOUR, MAX(collection_datetime), NOW()) as hours_elapsed
+      MAX(collection_datetime) as last_rental_date
     FROM car_rentals
   `);
 
@@ -175,16 +202,25 @@ async function getLastRentalInfo(db) {
     };
   }
 
-  const hours = lastRental[0].hours_elapsed;
-  let timeElapsed;
+  const lastRentalDate = moment(lastRental[0].last_rental_date);
+  const now = moment();
+  const duration = moment.duration(now.diff(lastRentalDate));
   
+  const hours = Math.floor(duration.asHours());
+  let timeElapsed;
+
   if (hours < 1) {
-    timeElapsed = "Less than an hour ago";
+    const minutes = Math.floor(duration.asMinutes());
+    if (minutes < 1) {
+      timeElapsed = "Just now";
+    } else {
+      timeElapsed = `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
+    }
   } else if (hours < 24) {
-    timeElapsed = `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    timeElapsed = `${hours} hour${hours !== 1 ? 's' : ''} ago`;
   } else {
-    const days = Math.floor(hours / 24);
-    timeElapsed = `${days} day${days > 1 ? 's' : ''} ago`;
+    const days = Math.floor(duration.asDays());
+    timeElapsed = `${days} day${days !== 1 ? 's' : ''} ago`;
   }
 
   return {
