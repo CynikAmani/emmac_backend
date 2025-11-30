@@ -33,6 +33,7 @@ import updateInsuranceCOFExpiryDateRoutes from './garage/analytics/updateInsuran
 import getCriticalAlertsRoutes from './alerts/getCriticalAlertsRoutes.js';
 import getNumOverdueRentalsRoutes from './alerts/getNumOverdueRentalsRoutes.js';
 import getDashboardStatsRoutes from './dashboard/getDashboardStats.js';
+import getReportsDataRoutes from './reports/getReportsDataRoutes.js';
 
 
 const router = express.Router();
@@ -94,6 +95,12 @@ router.use('/api/getRental', checkSession, getRentalRoutes);
 router.use('/api/resolveRental', checkSession, resolveRentalRoutes);
 router.use('/api/getResolvedRentals', checkSession, getResolvedRentalsRoutes);
 router.use('/api/extendRental', checkSession, extendRentalRoutes);
+
+
+
+//reports routes
+router.use('/api/getReportsData', checkSession, getReportsDataRoutes);
+
 
 
 // Export a default function that mounts the router to the app
