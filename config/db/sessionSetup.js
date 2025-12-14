@@ -15,15 +15,17 @@ export const createSessionMiddleware = () => {
   });
 
   return session({
-    key: 'session_id',
-    secret: process.env.SESSION_SECRET || 'change_this_secret',
-    store: sessionStore,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      httpOnly: true,
-      secure: false,
-      maxAge: 1000 * 60 * 60 * 24, // 1 day
-    }
-  });
+  key: 'session_id',
+  secret: process.env.SESSION_SECRET || 'change_this_secret',
+  store: sessionStore,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    secure: false,
+    maxAge: 1000 * 60 * 60 * 24, // 1 day
+    domain: process.env.COOKIE_DOMAIN || '.emmac.com',
+    path: '/',
+  }
+});
 };

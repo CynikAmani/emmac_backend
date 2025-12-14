@@ -34,6 +34,8 @@ import getCriticalAlertsRoutes from './alerts/getCriticalAlertsRoutes.js';
 import getNumOverdueRentalsRoutes from './alerts/getNumOverdueRentalsRoutes.js';
 import getDashboardStatsRoutes from './dashboard/getDashboardStats.js';
 import getReportsDataRoutes from './reports/getReportsDataRoutes.js';
+import checjSessionRoutes from './auth/checkSessionRoutes.js';
+import getOwnPermissions from './permissions/getOwnPermissions.js';
 
 
 const router = express.Router();
@@ -46,6 +48,10 @@ router.use('/api/login', loginRoutes);
 router.use('/api/logout', logout);
 
 
+//check session route
+router.use('/api/auth/checkSession', checjSessionRoutes);
+
+
 //dashboard routes
 router.use('/api/getDashboardStats', checkSession, getDashboardStatsRoutes);
 
@@ -53,10 +59,10 @@ router.use('/api/getDashboardStats', checkSession, getDashboardStatsRoutes);
 //users routes
 router.use('/api/users/createUser', checkSession, checkAdmin, createUserRoutes);
 router.use('/api/users/updateUser',checkSession, checkAdmin, updateUserRoutes);
-router.use('/api/users/getUsers', checkSession, checkAdmin, getUsersRoutes);
+router.use('/api/users/getUsers', checkSession, getUsersRoutes);
 router.use('/api/users/getUserDetails', checkSession, getUserDetailsRoutes);
-router.use('/api/users/resetUserPassword', checkSession, checkAdmin, resetUserPasswordRoutes);
-router.use('/api/users/toggleActivationStatus', checkSession, checkAdmin, toggleActivationStatusRoutes);
+router.use('/api/users/resetUserPassword', checkSession, resetUserPasswordRoutes);
+router.use('/api/users/toggleActivationStatus', checkSession, toggleActivationStatusRoutes);
 router.use('/api/users/profile', checkSession, getUserProfileDetailsRoutes);
 router.use('/api/users/updatePassword', checkSession, updatePasswordRoutes);
 
@@ -75,9 +81,10 @@ router.use('/api/updateInsuranceExpiryDate', checkSession, updateInsuranceCOFExp
 
 //permissions routes
 router.use('/api/setPermissions', checkSession, checkAdmin, setPermissionsRoutes);
-router.use('/api/getPermissions',checkSession, checkAdmin, getPermissionsRoutes);
-router.use('/api/getUserPermissions',checkSession, checkAdmin, getUserPermissionsRoutes);
+router.use('/api/getPermissions',checkSession, getPermissionsRoutes);
+router.use('/api/getUserPermissions',checkSession, getUserPermissionsRoutes);
 router.use('/api/toggleAdministrativePermissions', checkSession, checkAdmin, toggleAdministrativePermissionsRoutes);
+router.use('/api/getOwnPermissions', checkSession, getOwnPermissions);
 
 
 
