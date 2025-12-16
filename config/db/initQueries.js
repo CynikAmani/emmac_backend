@@ -53,38 +53,42 @@ export const tableQueries = [
   // 4. Car rentals table
   `
   CREATE TABLE IF NOT EXISTS car_rentals (
-	    id INT AUTO_INCREMENT PRIMARY KEY,
-	    handler_id INT NOT NULL,
-	    car_id INT NOT NULL,
-	    renter_full_name VARCHAR(60) NOT NULL,
-	    renter_phone VARCHAR(12) NOT NULL,
-	    renter_email VARCHAR(100),
-	    renter_signature BLOB,
-	    renter_id_image VARCHAR(100),
-	    license_image VARCHAR(100),
-	    witness_name VARCHAR(60),
-	    witness_id_image VARCHAR(100),
-	    rental_reason VARCHAR(100),
-	    pick_up_location VARCHAR(80),
-	    destination VARCHAR(80),
-	    collection_datetime DATETIME NOT NULL,
-	    expected_return_datetime DATETIME NOT NULL,
-	    actual_return_datetime DATETIME NULL,
-      status VARCHAR(50) NOT NULL,
-      is_deleted BOOLEAN DEFAULT false NOT NULL,
-
-	    abs_warning BOOLEAN DEFAULT FALSE,
-	    engine_check_warning BOOLEAN DEFAULT FALSE,
-	    temperature_warning BOOLEAN DEFAULT FALSE,
-	    battery_warning BOOLEAN DEFAULT FALSE,
-
-	    fuel_gauge VARCHAR(50),
-	    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-	    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
-	    FOREIGN KEY (car_id) REFERENCES car_details(id),
-	    FOREIGN KEY (handler_id) REFERENCES users(id)
-	);
+     id INT AUTO_INCREMENT PRIMARY KEY,
+     car_id INT NOT NULL,
+     renter_full_name VARCHAR(60) NOT NULL,
+     renter_phone VARCHAR(12) NOT NULL,
+     renter_email VARCHAR(100),
+     renter_signature BLOB,
+     renter_id_image VARCHAR(100),
+     license_image VARCHAR(100),
+     
+     -- Occupation/residence fields
+     renter_residence TEXT,
+     renter_occupation_type ENUM('employment', 'business') NULL,
+     occupation_description VARCHAR(100), -- Single field for occupation details
+     
+     rental_reason VARCHAR(100),
+     pick_up_location VARCHAR(80),
+     destination VARCHAR(80),
+     collection_datetime DATETIME NOT NULL,
+     expected_return_datetime DATETIME NOT NULL,
+     actual_return_datetime DATETIME NULL,
+ 
+     abs_warning BOOLEAN DEFAULT FALSE,
+     engine_check_warning BOOLEAN DEFAULT FALSE,
+     temperature_warning BOOLEAN DEFAULT FALSE,
+     battery_warning BOOLEAN DEFAULT FALSE,
+ 
+     fuel_gauge VARCHAR(50),
+     handler_id INT, -- Added this
+     status VARCHAR(20) DEFAULT 'active', -- Added this
+     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+ 
+     FOREIGN KEY (car_id) REFERENCES car_details(id),
+     FOREIGN KEY (fuel_gauge_id) REFERENCES fuel_gauges(id),
+     FOREIGN KEY (handler_id) REFERENCES handlers(id) -- Assuming handlers table exists
+ );
   `,
   `
   CREATE TABLE IF NOT EXISTS permissions (

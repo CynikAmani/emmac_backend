@@ -20,11 +20,12 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+// Updated upload fields - removed witness_id_image
 const uploadFields = upload.fields([
   { name: "renter_signature", maxCount: 1 },
   { name: "renter_id_image", maxCount: 1 },
-  { name: "license_image", maxCount: 1 },
-  { name: "witness_id_image", maxCount: 1 }
+  { name: "license_image", maxCount: 1 }
+  // Removed witness_id_image
 ]);
 
 // --------------------------------------------------------
@@ -47,23 +48,37 @@ const parseSignature = (raw) => {
 };
 
 // --------------------------------------------------------
-// INSERT builder (now includes status='active')
+// INSERT builder - MATCHING YOUR TABLE STRUCTURE
 // --------------------------------------------------------
 const buildInsertData = (body, files, handlerId) => {
   return {
     sql: `
       INSERT INTO car_rentals (
         handler_id,
-        car_id, renter_full_name, renter_phone, renter_email,
-        renter_signature, renter_id_image, license_image,
-        witness_name, witness_id_image, rental_reason,
-        pick_up_location, destination,
-        collection_datetime, expected_return_datetime, actual_return_datetime,
-        status,
-        abs_warning, engine_check_warning, temperature_warning, battery_warning,
-        fuel_gauge
+        car_id,
+        renter_full_name,
+        renter_phone,
+        renter_email,
+        renter_signature,
+        renter_id_image,
+        license_image,
+        renter_residence,
+        renter_occupation_type,
+        occupation_description,
+        rental_reason,
+        pick_up_location,
+        destination,
+        collection_datetime,
+        expected_return_datetime,
+        actual_return_datetime,
+        abs_warning,
+        engine_check_warning,
+        temperature_warning,
+        battery_warning,
+        fuel_gauge,
+        status
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
     values: [
       handlerId,
@@ -74,39 +89,55 @@ const buildInsertData = (body, files, handlerId) => {
       parseSignature(body.renter_signature),
       getFileName(files, "renter_id_image"),
       getFileName(files, "license_image"),
-      body.witness_name,
-      getFileName(files, "witness_id_image"),
+      body.renter_residence,
+      body.renter_occupation_type || null,
+      body.occupation_description,
       body.rental_reason,
       body.pick_up_location,
       body.destination,
       parseDateTime(body.collection_datetime),
       parseDateTime(body.expected_return_datetime),
       parseDateTime(body.actual_return_datetime),
-      "active", // INSERT ONLY
       parseBool(body.abs_warning),
       parseBool(body.engine_check_warning),
       parseBool(body.temperature_warning),
       parseBool(body.battery_warning),
-      body.fuel_gauge
+      body.fuel_gauge, // Changed from fuel_gauge_id to fuel_gauge (string)
+      "active"
     ]
   };
 };
 
 // --------------------------------------------------------
-// UPDATE builder (status NOT touched)
+// UPDATE builder - MATCHING YOUR TABLE STRUCTURE
 // --------------------------------------------------------
 const buildUpdateData = (body, files, handlerId) => {
   return {
     sql: `
       UPDATE car_rentals SET
         handler_id = ?,
-        car_id = ?, renter_full_name = ?, renter_phone = ?, renter_email = ?,
-        renter_signature = ?, renter_id_image = ?, license_image = ?,
-        witness_name = ?, witness_id_image = ?, rental_reason = ?,
-        pick_up_location = ?, destination = ?,
-        collection_datetime = ?, expected_return_datetime = ?, actual_return_datetime = ?,
-        abs_warning = ?, engine_check_warning = ?, temperature_warning = ?, battery_warning = ?,
-        fuel_gauge = ?
+        car_id = ?,
+        renter_full_name = ?,
+        renter_phone = ?,
+        renter_email = ?,
+        renter_signature = ?,
+        renter_id_image = ?,
+        license_image = ?,
+        renter_residence = ?,
+        renter_occupation_type = ?,
+        occupation_description = ?,
+        rental_reason = ?,
+        pick_up_location = ?,
+        destination = ?,
+        collection_datetime = ?,
+        expected_return_datetime = ?,
+        actual_return_datetime = ?,
+        abs_warning = ?,
+        engine_check_warning = ?,
+        temperature_warning = ?,
+        battery_warning = ?,
+        fuel_gauge = ?,
+        status = ?
       WHERE id = ?
     `,
     values: [
@@ -118,8 +149,9 @@ const buildUpdateData = (body, files, handlerId) => {
       parseSignature(body.renter_signature),
       getFileName(files, "renter_id_image") ?? body.existing_renter_id_image,
       getFileName(files, "license_image") ?? body.existing_license_image,
-      body.witness_name,
-      getFileName(files, "witness_id_image") ?? body.existing_witness_id_image,
+      body.renter_residence,
+      body.renter_occupation_type || null,
+      body.occupation_description,
       body.rental_reason,
       body.pick_up_location,
       body.destination,
@@ -130,7 +162,8 @@ const buildUpdateData = (body, files, handlerId) => {
       parseBool(body.engine_check_warning),
       parseBool(body.temperature_warning),
       parseBool(body.battery_warning),
-      body.fuel_gauge,
+      body.fuel_gauge, // Changed from fuel_gauge_id to fuel_gauge (string)
+      "active",
       Number(body.id)
     ]
   };

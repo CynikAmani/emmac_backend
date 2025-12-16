@@ -34,7 +34,8 @@ router.get("/", async (req, res) => {
         id, handler_id, car_id,
         renter_full_name, renter_phone, renter_email,
         renter_signature, renter_id_image, license_image,
-        witness_name, witness_id_image, rental_reason,
+        renter_residence, renter_occupation_type, occupation_description,
+        rental_reason,
         pick_up_location, destination,
         collection_datetime, expected_return_datetime, actual_return_datetime,
         status,
@@ -62,7 +63,7 @@ router.get("/", async (req, res) => {
       renter_signature: encodeSignature(row.renter_signature),
       renter_id_image: buildImageURL(row.renter_id_image),
       license_image: buildImageURL(row.license_image),
-      witness_id_image: buildImageURL(row.witness_id_image),
+      // Removed witness fields
       collection_datetime: row.collection_datetime,
       expected_return_datetime: row.expected_return_datetime,
       actual_return_datetime: row.actual_return_datetime

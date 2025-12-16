@@ -75,6 +75,9 @@ router.get("/", async (req, res) => {
         renter_full_name: rental.renter_full_name,
         renter_phone: rental.renter_phone,
         renter_email: rental.renter_email,
+        renter_residence: rental.renter_residence || "",
+        renter_occupation_type: rental.renter_occupation_type || "", 
+        occupation_description: rental.occupation_description || "",
         rental_reason: rental.rental_reason,
         pick_up_location: rental.pick_up_location,
         destination: rental.destination,
@@ -89,8 +92,7 @@ router.get("/", async (req, res) => {
       files: {
         renter_signature: renterSignatureBase64,
         renter_id_image: rental.renter_id_image,
-        license_image: rental.license_image,
-        witness_id_image: rental.witness_id_image
+        license_image: rental.license_image
       },
 
       equipment_checklist: {
@@ -118,7 +120,6 @@ router.get("/", async (req, res) => {
 
       additional_info: {
         fuel_gauge: rental.fuel_gauge,
-        witness_name: rental.witness_name,
         created_at: rental.created_at,
         updated_at: rental.updated_at
       }

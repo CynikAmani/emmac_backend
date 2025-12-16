@@ -37,6 +37,7 @@ import getReportsDataRoutes from './reports/getReportsDataRoutes.js';
 import checjSessionRoutes from './auth/checkSessionRoutes.js';
 import getOwnPermissions from './permissions/getOwnPermissions.js';
 import deleteCarRoutes from './garage/deleteCarRoutes.js';
+import getUserRoleRoutes from './userRole/getUserRoleRoutes.js';
 
 
 const router = express.Router();
@@ -55,6 +56,10 @@ router.use('/api/auth/checkSession', checjSessionRoutes);
 
 //dashboard routes
 router.use('/api/getDashboardStats', checkSession, getDashboardStatsRoutes);
+
+
+//user role route
+router.use('/api/getUserRole', checkSession, getUserRoleRoutes);
 
 
 //users routes
