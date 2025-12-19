@@ -108,6 +108,17 @@ export const tableQueries = [
 
      FOREIGN KEY (user_id) REFERENCES users(id),
      FOREIGN KEY (permission_id) REFERENCES permissions(id)
+   );`,
+
+   
+   `CREATE TABLE IF NOT EXISTS audit_logs (
+     id BIGINT AUTO_INCREMENT PRIMARY KEY,
+     actor_id INT NOT NULL,
+     action VARCHAR(100) NOT NULL,
+     description VARCHAR(256) NOT NULL,
+     entity_type VARCHAR(50) NOT NULL,
+     entity_id INT NOT NULL,
+     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
    );`
 ];
 

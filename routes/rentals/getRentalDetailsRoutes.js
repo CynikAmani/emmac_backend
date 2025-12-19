@@ -74,7 +74,6 @@ router.get("/", async (req, res) => {
       rental_details: {
         renter_full_name: rental.renter_full_name,
         renter_phone: rental.renter_phone,
-        renter_email: rental.renter_email,
         renter_residence: rental.renter_residence || "",
         renter_occupation_type: rental.renter_occupation_type || "", 
         occupation_description: rental.occupation_description || "",

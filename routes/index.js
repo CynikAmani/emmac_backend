@@ -38,6 +38,7 @@ import checjSessionRoutes from './auth/checkSessionRoutes.js';
 import getOwnPermissions from './permissions/getOwnPermissions.js';
 import deleteCarRoutes from './garage/deleteCarRoutes.js';
 import getUserRoleRoutes from './userRole/getUserRoleRoutes.js';
+import getVehicleAuditLogsRoutes from './garage/audit-logs/getVehicleAuditLogsRoutes.js';
 
 
 const router = express.Router();
@@ -83,6 +84,7 @@ router.use('/api/getFleetAnalytics', checkSession, getFleetAnalyticsRoutes);
 router.use('/api/resetServiceMileage', checkSession, resetServiceMileageRoutes);
 router.use('/api/updateInsuranceExpiryDate', checkSession, updateInsuranceCOFExpiryDateRoutes);
 router.use('/api/deleteCar', checkSession, deleteCarRoutes);
+router.use('/api/getVehicleAuditLogs', checkSession, getVehicleAuditLogsRoutes);
 
 
 

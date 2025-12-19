@@ -107,7 +107,7 @@ const getServiceAlerts = async (db) => {
         mileage: car.mileage,
         next_service_mileage: car.next_service_mileage,
         serviceStatus: 'Soon',
-        mileageRemaining: 5000 - car.next_service_mileage,
+        mileageRemaining: car.next_service_mileage - 4500,
         alertLevel: 'medium'
       }))
     }
@@ -129,7 +129,7 @@ const getUrgentAlerts = async (db) => {
     SELECT id, make, model, registration_number, insurance_cof_expiry_date
     FROM car_details 
     WHERE is_deleted = false 
-      AND insurance_cof_expiry_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 45 DAY)
+      AND insurance_cof_expiry_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY)
   `);
 
   const [safetyRows] = await db.query(`

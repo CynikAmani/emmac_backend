@@ -53,7 +53,7 @@ const getExpiringInsuranceCount = async (db) => {
     SELECT COUNT(*) as count
     FROM car_details 
     WHERE is_deleted = false 
-      AND insurance_cof_expiry_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 60 DAY)
+      AND insurance_cof_expiry_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY)
   `);
   return rows[0].count;
 };
@@ -73,7 +73,7 @@ const getServiceDueSoonCount = async (db) => {
     SELECT COUNT(*) as count
     FROM car_details 
     WHERE is_deleted = false 
-      AND next_service_mileage BETWEEN 4000 AND 4999
+      AND next_service_mileage BETWEEN 4500 AND 4999
   `);
   return rows[0].count;
 };

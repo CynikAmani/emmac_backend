@@ -58,7 +58,6 @@ const buildInsertData = (body, files, handlerId) => {
         car_id,
         renter_full_name,
         renter_phone,
-        renter_email,
         renter_signature,
         renter_id_image,
         license_image,
@@ -78,14 +77,13 @@ const buildInsertData = (body, files, handlerId) => {
         fuel_gauge,
         status
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
     values: [
       handlerId,
       Number(body.car_id),
       body.renter_full_name,
       body.renter_phone,
-      body.renter_email,
       parseSignature(body.renter_signature),
       getFileName(files, "renter_id_image"),
       getFileName(files, "license_image"),
