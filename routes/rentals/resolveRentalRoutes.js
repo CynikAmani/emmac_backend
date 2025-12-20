@@ -38,6 +38,22 @@ async function updateCarMileage(db, carId, currentMileage, diff) {
   return result.affectedRows;
 }
 
+async function logAudit(db, actorId, action, description, entityType, entityId) {
+  await db.query(
+    `INSERT INTO audit_logs (actor_id, action, description, entity_type, entity_id) 
+     VALUES (?, ?, ?, ?, ?)`,
+    [actorId, action, description, entityType, entityId]
+  );
+}
+
+async function createRentalIssue(db, providerId, description, rentalId) {
+  await db.query(
+    `INSERT INTO rental_issues (provider_id, description, rental_id) 
+     VALUES (?, ?, ?)`,
+    [providerId, description, rentalId]
+  );
+}
+
 // --------------------------------------------------------
 // RESOLVE RENTAL
 // --------------------------------------------------------
@@ -46,7 +62,7 @@ router.post("/:id", async (req, res) => {
   const rentalId = Number(req.params.id);
   const handlerId = req.session?.userId;
 
-  const { currentMileage, carId } = req.body;
+  const { currentMileage, carId, hasIssues, issueDescription } = req.body;
   
 
   if (!handlerId) {
@@ -126,6 +142,40 @@ router.post("/:id", async (req, res) => {
       [carId]
     );
 
+    // --------------------------------------------------------
+    // Log audit entry
+    // --------------------------------------------------------
+    await logAudit(
+      db,
+      handlerId,
+      'RESOLVE_RENTAL',
+      `Rental #${rentalId} resolved with mileage ${currentMileage}`,
+      'RENTAL',
+      rentalId
+    );
+
+    // --------------------------------------------------------
+    // Create rental issue if hasIssues is true
+    // --------------------------------------------------------
+    if (hasIssues && issueDescription) {
+      await createRentalIssue(
+        db,
+        handlerId,
+        issueDescription,
+        rentalId
+      );
+
+      // Log audit for issue creation
+      await logAudit(
+        db,
+        handlerId,
+        'CREATE_RENTAL_ISSUE',
+        `Issue reported for rental #${rentalId}`,
+        'RENTAL_ISSUE',
+        rentalId
+      );
+    }
+
     return res.status(200).json({
       message: "Rental resolved successfully",
       rentalId,
@@ -134,6 +184,8 @@ router.post("/:id", async (req, res) => {
         newMileage: currentMileage,
         diff
       },
+      hasIssues: hasIssues || false,
+      issueLogged: hasIssues && issueDescription ? true : false,
       affected: rentalUpdate.affectedRows
     });
 

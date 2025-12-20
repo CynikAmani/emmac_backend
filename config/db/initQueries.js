@@ -119,6 +119,17 @@ export const tableQueries = [
      entity_type VARCHAR(50) NOT NULL,
      entity_id INT NOT NULL,
      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+   );`,
+
+   
+    `
+    CREATE TABLE IF NOT EXISTS rental_issues (
+     id INT AUTO_INCREMENT PRIMARY KEY,
+     provider_id INT NOT NULL,
+     description VARCHAR(256) NOT NULL,
+     rental_id INT NOT NULL,
+     FOREIGN KEY (rental_id) REFERENCES car_rentals(id),
+     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
    );`
 ];
 

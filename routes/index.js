@@ -39,6 +39,8 @@ import getOwnPermissions from './permissions/getOwnPermissions.js';
 import deleteCarRoutes from './garage/deleteCarRoutes.js';
 import getUserRoleRoutes from './userRole/getUserRoleRoutes.js';
 import getVehicleAuditLogsRoutes from './garage/audit-logs/getVehicleAuditLogsRoutes.js';
+import getRentalIssuesRoutes from './rentals/getRentalIssuesRoutes.js';
+import resolveRentalIssueRoutes from './rentals/resolveRentalIssueRoutes.js';
 
 
 const router = express.Router();
@@ -111,6 +113,8 @@ router.use('/api/getRental', checkSession, getRentalRoutes);
 router.use('/api/resolveRental', checkSession, resolveRentalRoutes);
 router.use('/api/getResolvedRentals', checkSession, getResolvedRentalsRoutes);
 router.use('/api/extendRental', checkSession, extendRentalRoutes);
+router.use('/api/getRentalIssues', checkSession, getRentalIssuesRoutes);
+router.use('/api/resolveRentalIssue', checkSession, resolveRentalIssueRoutes);
 
 
 
