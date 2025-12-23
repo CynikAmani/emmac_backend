@@ -41,6 +41,9 @@ import getUserRoleRoutes from './userRole/getUserRoleRoutes.js';
 import getVehicleAuditLogsRoutes from './garage/audit-logs/getVehicleAuditLogsRoutes.js';
 import getRentalIssuesRoutes from './rentals/getRentalIssuesRoutes.js';
 import resolveRentalIssueRoutes from './rentals/resolveRentalIssueRoutes.js';
+import getRentalAuditLogsRoutes from './rentals/getRentalAuditLogsRoutes.js';
+import updateProfileImage from './users/generic/updateProfileImage.js';
+
 
 
 const router = express.Router();
@@ -74,6 +77,7 @@ router.use('/api/users/resetUserPassword', checkSession, resetUserPasswordRoutes
 router.use('/api/users/toggleActivationStatus', checkSession, toggleActivationStatusRoutes);
 router.use('/api/users/profile', checkSession, getUserProfileDetailsRoutes);
 router.use('/api/users/updatePassword', checkSession, updatePasswordRoutes);
+router.use('/api/users/updateProfileImage', checkSession, updateProfileImage);
 
 
 
@@ -115,6 +119,7 @@ router.use('/api/getResolvedRentals', checkSession, getResolvedRentalsRoutes);
 router.use('/api/extendRental', checkSession, extendRentalRoutes);
 router.use('/api/getRentalIssues', checkSession, getRentalIssuesRoutes);
 router.use('/api/resolveRentalIssue', checkSession, resolveRentalIssueRoutes);
+router.use('/api/getRentalAuditLogs', checkSession, getRentalAuditLogsRoutes);
 
 
 

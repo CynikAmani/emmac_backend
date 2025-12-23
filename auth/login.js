@@ -28,7 +28,7 @@ router.post('/', async (req, res) => {
     if (user.deactivated === 1 || user.deactivated === true) {
       return res.status(403).json({
         success: false,
-        message: 'Account is deactivated. Contact admin.'
+        message: 'This account is deactivated. Contact admin.'
       });
     }
 

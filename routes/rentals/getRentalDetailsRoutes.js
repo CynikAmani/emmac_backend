@@ -51,10 +51,37 @@ router.get("/", async (req, res) => {
 
     const rental = rentals[0];
 
-    // Convert BLOB signature to Base64
-    const renterSignatureBase64 = rental.renter_signature
-      ? `data:image/png;base64,${Buffer.from(rental.renter_signature).toString('base64')}`
-      : null;
+    // Handle signature - it might be double-encoded
+    let renterSignatureBase64 = rental.renter_signature || null;
+    
+    if (renterSignatureBase64) {
+      // Convert Buffer to string if needed
+      if (Buffer.isBuffer(renterSignatureBase64)) {
+        renterSignatureBase64 = renterSignatureBase64.toString('utf8');
+      }
+      
+      // Ensure it's a string and trim
+      renterSignatureBase64 = String(renterSignatureBase64).trim();
+      
+      // Check if the base64 string itself contains a data URL
+      // Decode once if it starts with "ZGF0YTppbWFnZS8" (base64 of "data:image/)
+      if (renterSignatureBase64.startsWith('ZGF0YTppbWFnZS8')) {
+        // This is a double-encoded signature, decode it once
+        try {
+          renterSignatureBase64 = Buffer.from(renterSignatureBase64, 'base64').toString('utf8');
+        } catch (err) {
+          console.error("Error decoding double-encoded signature:", err);
+        }
+      }
+      
+      // Now ensure it has the data URL prefix
+      if (!renterSignatureBase64.startsWith('data:image/')) {
+        // If it's valid base64 but not a data URL, add the prefix
+        if (/^[A-Za-z0-9+/]+=*$/.test(renterSignatureBase64)) {
+          renterSignatureBase64 = `data:image/png;base64,${renterSignatureBase64}`;
+        }
+      }
+    }
 
     res.status(200).json({
       id: rental.id,

@@ -26,7 +26,7 @@ router.delete("/:id", async (req, res) => {
   }
 
   try {
-    // DELETE FIRST — THIS IS THE SOURCE OF TRUTH
+    // DELETE FIRST — SOURCE OF TRUTH
     const [result] = await db.query(
       "DELETE FROM rental_issues WHERE id = ?",
       [issueId]
@@ -41,15 +41,21 @@ router.delete("/:id", async (req, res) => {
 
     // AUDIT LOG — MUST NOT AFFECT CLIENT RESPONSE
     try {
-      const auditDescription = `
-Rental issue resolved and removed from the system.
+      const formattedResolvedAt = new Date(
+        resolvedAt || Date.now()
+      ).toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric"
+      });
 
-Renter: ${renterName}
-Issue Provider: ${issueProvider}
-Vehicle: ${carInfo}
-Rental ID: ${rentalId}
-Resolved At: ${resolvedAt || new Date().toISOString()}
-      `.trim();
+      const auditDescription =
+        `Rental issue was resolved and removed. ` +
+        `Renter: ${renterName}. ` +
+        `Reported by: ${issueProvider}. ` +
+        `Vehicle: ${carInfo}. ` +
+        `Rental ID: ${rentalId}. ` +
+        `Resolved on: ${formattedResolvedAt}.`;
 
       await db.query(
         `INSERT INTO audit_logs (
@@ -71,7 +77,6 @@ Resolved At: ${resolvedAt || new Date().toISOString()}
       console.error("⚠️ Audit log failed:", auditErr);
     }
 
-    // CLIENT RESPONSE ALWAYS MATCHES REALITY
     return res.status(200).json({
       success: true,
       message: "Rental issue resolved successfully",

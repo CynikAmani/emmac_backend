@@ -24,6 +24,10 @@ function validateMileage(currentMileage, existingMileage) {
   return { valid: true };
 }
 
+function formatMileage(value) {
+  return `${Number(value).toLocaleString("en-GB")} KM`;
+}
+
 async function updateCarMileage(db, carId, currentMileage, diff) {
   const nextServiceUpdate = `
     UPDATE car_details
@@ -63,7 +67,6 @@ router.post("/:id", async (req, res) => {
   const handlerId = req.session?.userId;
 
   const { currentMileage, carId, hasIssues, issueDescription } = req.body;
-  
 
   if (!handlerId) {
     return res.status(401).json({
@@ -80,7 +83,6 @@ router.post("/:id", async (req, res) => {
   }
 
   try {
-    // Ensure rental exists
     const [existing] = await db.query(
       "SELECT id FROM car_rentals WHERE id = ?",
       [rentalId]
@@ -93,9 +95,6 @@ router.post("/:id", async (req, res) => {
       });
     }
 
-    // --------------------------------------------------------
-    // Fetch car details and validate mileage
-    // --------------------------------------------------------
     const car = await getCarById(db, carId);
 
     if (!car) {
@@ -113,17 +112,10 @@ router.post("/:id", async (req, res) => {
       });
     }
 
-    // Compute mileage difference
     const diff = Number(currentMileage) - Number(car.mileage);
 
-    // --------------------------------------------------------
-    // Update car mileage and next service mileage
-    // --------------------------------------------------------
     await updateCarMileage(db, carId, currentMileage, diff);
 
-    // --------------------------------------------------------
-    // Resolve rental
-    // --------------------------------------------------------
     const [rentalUpdate] = await db.query(
       `
         UPDATE car_rentals
@@ -136,42 +128,32 @@ router.post("/:id", async (req, res) => {
       [handlerId, rentalId]
     );
 
-    // Update car status to Available
     await db.query(
       "UPDATE car_details SET status = 'Available' WHERE id = ?",
       [carId]
     );
 
     // --------------------------------------------------------
-    // Log audit entry
+    // Audit log — human readable mileage
     // --------------------------------------------------------
     await logAudit(
       db,
       handlerId,
-      'RESOLVE_RENTAL',
-      `Rental #${rentalId} resolved with mileage ${currentMileage}`,
-      'RENTAL',
+      "RESOLVE RENTAL",
+      `Rental #${rentalId} resolved. Mileage updated from ${formatMileage(car.mileage)} to ${formatMileage(currentMileage)} (+${formatMileage(diff)}).`,
+      "RENTAL",
       rentalId
     );
 
-    // --------------------------------------------------------
-    // Create rental issue if hasIssues is true
-    // --------------------------------------------------------
     if (hasIssues && issueDescription) {
-      await createRentalIssue(
-        db,
-        handlerId,
-        issueDescription,
-        rentalId
-      );
+      await createRentalIssue(db, handlerId, issueDescription, rentalId);
 
-      // Log audit for issue creation
       await logAudit(
         db,
         handlerId,
-        'CREATE_RENTAL_ISSUE',
-        `Issue reported for rental #${rentalId}`,
-        'RENTAL_ISSUE',
+        "CREATE RENTAL ISSUE",
+        `Issue reported for rental #${rentalId}.`,
+        "RENTAL_ISSUE",
         rentalId
       );
     }

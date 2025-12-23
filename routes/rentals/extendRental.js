@@ -4,7 +4,7 @@ import { connectDB } from "../../config/db/connect.js";
 const router = express.Router();
 
 // --------------------------------------------------------
-// EXTEND RENTAL
+// ADJUST RENTAL DURATION
 // --------------------------------------------------------
 router.post("/:id", async (req, res) => {
   const db = await connectDB();
@@ -29,7 +29,7 @@ router.post("/:id", async (req, res) => {
   try {
     // Check if rental exists and is active
     const [existing] = await db.query(
-      `SELECT id, collection_datetime, expected_return_datetime 
+      `SELECT id, collection_datetime, expected_return_datetime, renter_full_name
        FROM car_rentals 
        WHERE id = ? AND status = 'active'`,
       [rentalId]
@@ -47,7 +47,6 @@ router.post("/:id", async (req, res) => {
     const collectionDate = new Date(rental.collection_datetime);
     const currentExpectedReturn = new Date(rental.expected_return_datetime);
 
-    // Validate new return date
     if (newReturnDate <= collectionDate) {
       return res.status(400).json({
         error: "Invalid date",
@@ -55,14 +54,7 @@ router.post("/:id", async (req, res) => {
       });
     }
 
-    if (newReturnDate <= currentExpectedReturn) {
-      return res.status(400).json({
-        error: "Invalid date",
-        details: "New return date must be after current expected return date"
-      });
-    }
-
-    // Extend rental - FIXED: Use updated_at instead of last_updated
+    // Adjust rental duration
     const [result] = await db.query(
       `
         UPDATE car_rentals
@@ -75,17 +67,52 @@ router.post("/:id", async (req, res) => {
       [newReturnDate, handlerId, rentalId]
     );
 
+    // AUDIT LOG — Rental Adjustment
+    try {
+      const formatDate = (date) =>
+        new Date(date).toLocaleDateString("en-GB", {
+          day: "numeric",
+          month: "short",
+          year: "numeric"
+        });
+
+      const auditDescription =
+        `Rental return date adjusted. ` +
+        `Renter: ${rental.renter_full_name}. ` +
+        `Previous return: ${formatDate(currentExpectedReturn)}. ` +
+        `New return: ${formatDate(newReturnDate)}.`;
+
+      await db.query(
+        `INSERT INTO audit_logs (
+          actor_id,
+          action,
+          description,
+          entity_type,
+          entity_id
+        ) VALUES (?, ?, ?, ?, ?)`,
+        [
+          handlerId,
+          "Adjust Rental Duration",
+          auditDescription,
+          "Rental",
+          rentalId
+        ]
+      );
+    } catch (auditErr) {
+      console.error("⚠️ Audit log failed:", auditErr);
+    }
+
     return res.status(200).json({
-      message: "Rental extended successfully",
+      message: "Rental adjusted successfully",
       rentalId,
       new_return_datetime: newReturnDate,
       affected: result.affectedRows
     });
 
   } catch (err) {
-    console.error("❌ Rental extension error:", err);
+    console.error("❌ Rental adjustment error:", err);
     return res.status(500).json({
-      error: "Failed to extend rental",
+      error: "Failed to adjust rental",
       details: err.message
     });
   }
