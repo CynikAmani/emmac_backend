@@ -43,6 +43,7 @@ import getRentalIssuesRoutes from './rentals/getRentalIssuesRoutes.js';
 import resolveRentalIssueRoutes from './rentals/resolveRentalIssueRoutes.js';
 import getRentalAuditLogsRoutes from './rentals/getRentalAuditLogsRoutes.js';
 import updateProfileImage from './users/generic/updateProfileImage.js';
+import getPasswordStatusRoutes from './users/staff/getPasswordStatusRoutes.js';
 
 
 
@@ -78,6 +79,7 @@ router.use('/api/users/toggleActivationStatus', checkSession, toggleActivationSt
 router.use('/api/users/profile', checkSession, getUserProfileDetailsRoutes);
 router.use('/api/users/updatePassword', checkSession, updatePasswordRoutes);
 router.use('/api/users/updateProfileImage', checkSession, updateProfileImage);
+router.use('/api/users/getPasswordStatus', checkSession, getPasswordStatusRoutes);
 
 
 
