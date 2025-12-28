@@ -18,6 +18,11 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
+// Trust proxy in production
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 // Helmet
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
