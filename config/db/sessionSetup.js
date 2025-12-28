@@ -9,9 +9,9 @@ export const createSessionMiddleware = () => {
   const sessionStore = new MySQLStore({
     host: process.env.DB_HOST || 'localhost',
     port: process.env.DB_PORT || 3306,
-    user: process.env.DB_USER || 'root',
+    user: process.env.DB_USER || 'emmac_root',
     password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'emmac_db',
+    database: process.env.DB_NAME || 'emmac',
   });
 
   return session({
@@ -22,9 +22,9 @@ export const createSessionMiddleware = () => {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', 
+      secure: process.env.NODE_ENV === 'production', // HTTPS only in prod
       maxAge: 1000 * 60 * 60 * 24, // 1 day
-      domain: process.env.NODE_ENV === 'production' ? '.emmac.com' : undefined,
+      domain: undefined,
       path: '/',
     }
   });
