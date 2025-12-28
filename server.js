@@ -29,8 +29,7 @@ app.use(express.json());
 
 // CORS — allow any browser with credentials
 app.use(cors({
-  origin: true,        // dynamically allow any origin
-  credentials: true,  // enable cookies/sessions
+  origin: "*",
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   optionsSuccessStatus: 200
