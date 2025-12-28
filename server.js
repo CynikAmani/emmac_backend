@@ -27,9 +27,10 @@ app.use(helmet({
 app.use(morgan('dev'));
 app.use(express.json());
 
-// CORS — allow any browser with credentials
+// CORS — allow frontend domain with credentials
 app.use(cors({
-  origin: "*",
+  origin: 'https://emmac-frontend.vercel.app',
+  credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   optionsSuccessStatus: 200

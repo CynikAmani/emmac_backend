@@ -10,8 +10,8 @@ export const createSessionMiddleware = () => {
     host: process.env.DB_HOST || 'localhost',
     port: process.env.DB_PORT || 3306,
     user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '', 
-    database: process.env.DB_NAME || 'emmac_system'
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'emmac_db',
   });
 
   return session({
@@ -22,9 +22,9 @@ export const createSessionMiddleware = () => {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: false,
+      secure: process.env.NODE_ENV === 'production', 
       maxAge: 1000 * 60 * 60 * 24, // 1 day
-      domain: process.env.COOKIE_DOMAIN || '.emmac.com',
+      domain: process.env.NODE_ENV === 'production' ? '.emmac.com' : undefined,
       path: '/',
     }
   });
