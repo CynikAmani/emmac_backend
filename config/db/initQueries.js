@@ -32,6 +32,7 @@ export const tableQueries = [
     next_service_mileage DECIMAL(10,2),
     status ENUM('Available','Rented','Maintenance','Inactive') DEFAULT 'Available',
     status_description TEXT,
+    is_deleted BOOLEAN DEFAULT false NOT NULL,
 
     has_jack BOOLEAN DEFAULT FALSE,
     has_wheel_spanner BOOLEAN DEFAULT FALSE,
@@ -86,8 +87,7 @@ export const tableQueries = [
      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
  
      FOREIGN KEY (car_id) REFERENCES car_details(id),
-     FOREIGN KEY (fuel_gauge_id) REFERENCES fuel_gauges(id),
-     FOREIGN KEY (handler_id) REFERENCES handlers(id) -- Assuming handlers table exists
+     FOREIGN KEY (handler_id) REFERENCES users(id) ON DELETE SET NULL
  );
   `,
   `
@@ -135,27 +135,24 @@ export const tableQueries = [
 
 export const indexQueries = [
   // Users table indexes
-  `CREATE INDEX IF NOT EXISTS idx_users_last_name ON users(last_name);`,
-  `CREATE INDEX IF NOT EXISTS idx_users_user_type ON users(user_type);`,
+  `CREATE INDEX idx_users_last_name ON users(last_name);`,
+  `CREATE INDEX idx_users_user_type ON users(user_type);`,
 
   // Car details indexes
-  `CREATE INDEX IF NOT EXISTS idx_car_details_registration_number ON car_details(registration_number);`,
-  `CREATE INDEX IF NOT EXISTS idx_car_details_make ON car_details(make);`,
-  `CREATE INDEX IF NOT EXISTS idx_car_details_model ON car_details(model);`,
-  `CREATE INDEX IF NOT EXISTS idx_car_details_status ON car_details(status);`,
+  `CREATE INDEX idx_car_details_registration_number ON car_details(registration_number);`,
+  `CREATE INDEX idx_car_details_make ON car_details(make);`,
+  `CREATE INDEX idx_car_details_model ON car_details(model);`,
+  `CREATE INDEX idx_car_details_status ON car_details(status);`,
 
   // Car rentals indexes
-  `CREATE INDEX IF NOT EXISTS idx_car_rentals_car_id ON car_rentals(car_id);`,
-  `CREATE INDEX IF NOT EXISTS idx_car_rentals_collection_datetime ON car_rentals(collection_datetime);`,
-  `CREATE INDEX IF NOT EXISTS idx_car_rentals_expected_return_datetime ON car_rentals(expected_return_datetime);`,
-  `CREATE INDEX IF NOT EXISTS idx_car_rentals_renter_phone ON car_rentals(renter_phone);`,
-  `CREATE INDEX IF NOT EXISTS idx_car_rentals_renter_full_name ON car_rentals(renter_full_name);`,
-
-  // Fuel gauges indexes
-  `CREATE INDEX IF NOT EXISTS idx_fuel_gauges_fuel_level ON fuel_gauges(fuel_level);`,
+  `CREATE INDEX idx_car_rentals_car_id ON car_rentals(car_id);`,
+  `CREATE INDEX idx_car_rentals_collection_datetime ON car_rentals(collection_datetime);`,
+  `CREATE INDEX idx_car_rentals_expected_return_datetime ON car_rentals(expected_return_datetime);`,
+  `CREATE INDEX idx_car_rentals_renter_phone ON car_rentals(renter_phone);`,
+  `CREATE INDEX idx_car_rentals_renter_full_name ON car_rentals(renter_full_name);`,
 
   // Permissions indexes
-  `CREATE INDEX IF NOT EXISTS idx_permissions_permission_name ON permissions(permission_name);`,
-  `CREATE INDEX IF NOT EXISTS idx_staff_permissions_user_id ON staff_permissions(user_id);`,
-  `CREATE INDEX IF NOT EXISTS idx_staff_permissions_permission_id ON staff_permissions(permission_id);`
+  `CREATE INDEX idx_permissions_permission_name ON permissions(permission_name);`,
+  `CREATE INDEX idx_staff_permissions_user_id ON staff_permissions(user_id);`,
+  `CREATE INDEX idx_staff_permissions_permission_id ON staff_permissions(permission_id);`
 ];

@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -6,13 +9,9 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { initializeDatabase } from './config/db/setup.js';
-import dotenv from 'dotenv';
 import registerRoutes from './routes/index.js';
-
 import { createSessionMiddleware } from './config/db/sessionSetup.js';
 import { connectDB } from './config/db/connect.js';
-
-dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -28,19 +27,17 @@ app.use(helmet({
 app.use(morgan('dev'));
 app.use(express.json());
 
-// CORS
+// CORS — allow any browser with credentials
 app.use(cors({
-  origin: process.env.DEV_ORIGIN || 'http://localhost:3000',
+  origin: true,        // dynamically allow any origin
+  credentials: true,  // enable cookies/sessions
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   optionsSuccessStatus: 200
 }));
 
-// ---------------------------------
-// ✅ SESSION MIDDLEWARE (fixed)
-// ---------------------------------
+// Session middleware
 app.use(createSessionMiddleware());
-// ---------------------------------
 
 // Uploads directory
 const createUploadsDirectory = () => {
@@ -62,7 +59,7 @@ app.use('/images', express.static(path.join(__dirname, 'uploads'), {
   maxAge: '1y',
   etag: true,
   lastModified: true,
-  setHeaders: (res, path) => {
+  setHeaders: (res) => {
     res.set('Cross-Origin-Resource-Policy', 'cross-origin');
   }
 }));
@@ -72,7 +69,7 @@ app.get('/', (req, res) => {
   res.send('Server is running...');
 });
 
-// Mount routes
+// Routes
 registerRoutes(app);
 
 // Start server
