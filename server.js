@@ -25,14 +25,14 @@ if (process.env.NODE_ENV === 'production') {
 
 // Helmet
 app.use(helmet({
-  crossOriginResourcePolicy: { policy: "cross-origin" },
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
   crossOriginEmbedderPolicy: false
 }));
 
 app.use(morgan('dev'));
 app.use(express.json());
 
-// CORS — allow frontend domain with credentials
+// CORS
 app.use(cors({
   origin: 'https://emmac-frontend.vercel.app',
   credentials: true,
@@ -44,12 +44,19 @@ app.use(cors({
 // Session middleware
 app.use(createSessionMiddleware());
 
-// Uploads directory
+/**
+ * =========================
+ * Uploads configuration
+ * =========================
+ */
+const uploadsBaseDir = process.env.UPLOADS_DIR
+  ? path.resolve(process.env.UPLOADS_DIR)
+  : path.join(__dirname, 'uploads');
+
 const createUploadsDirectory = () => {
-  const uploadsDir = path.join(__dirname, 'uploads');
   try {
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
+    if (!fs.existsSync(uploadsBaseDir)) {
+      fs.mkdirSync(uploadsBaseDir, { recursive: true });
     }
   } catch (error) {
     console.error('❌ Failed to create uploads directory:', error.message);
@@ -59,15 +66,19 @@ const createUploadsDirectory = () => {
 
 createUploadsDirectory();
 
-// Static files
-app.use('/images', express.static(path.join(__dirname, 'uploads'), {
-  maxAge: '1y',
-  etag: true,
-  lastModified: true,
-  setHeaders: (res) => {
-    res.set('Cross-Origin-Resource-Policy', 'cross-origin');
-  }
-}));
+// Static access point → /images
+app.use(
+  '/images',
+  express.static(uploadsBaseDir, {
+    maxAge: '1y',
+    etag: true,
+    lastModified: true,
+    setHeaders: (res) => {
+      res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+      res.set('Access-Control-Allow-Origin', '*');
+    }
+  })
+);
 
 // Root test route
 app.get('/', (req, res) => {
@@ -84,7 +95,9 @@ const startServer = async () => {
     await initializeDatabase();
 
     const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+    app.listen(PORT, () =>
+      console.log(`🚀 Server running on port ${PORT}`)
+    );
   } catch (err) {
     console.error('❌ Server failed to start:', err.message);
     process.exit(1);

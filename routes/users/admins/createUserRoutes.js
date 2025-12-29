@@ -1,24 +1,39 @@
 import multer from 'multer';
 import path from 'path';
+import fs from 'fs';
 import { connectDB } from '../../../config/db/connect.js';
 import bcrypt from 'bcrypt';
 
-// Configure multer for file uploads
+/**
+ * =========================
+ * Uploads directory
+ * =========================
+ */
+const UPLOADS_DIR = process.env.UPLOADS_DIR
+  ? path.resolve(process.env.UPLOADS_DIR)
+  : path.resolve('uploads');
+
+if (!fs.existsSync(UPLOADS_DIR)) {
+  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+}
+
+/**
+ * =========================
+ * Multer configuration
+ * =========================
+ */
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadsDir = path.join(process.cwd(), 'uploads');
-    cb(null, uploadsDir);
+    cb(null, UPLOADS_DIR);
   },
   filename: (req, file, cb) => {
-    // Generate unique filename with timestamp
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    cb(null, 'profile-' + uniqueSuffix + ext);
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    const ext = path.extname(file.originalname).toLowerCase();
+    cb(null, `profile-${uniqueSuffix}${ext}`);
   }
 });
 
 const fileFilter = (req, file, cb) => {
-  // Check if file is an image
   if (file.mimetype.startsWith('image/')) {
     cb(null, true);
   } else {
@@ -27,31 +42,37 @@ const fileFilter = (req, file, cb) => {
 };
 
 const upload = multer({
-  storage: storage,
-  fileFilter: fileFilter,
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
-  }
+  storage,
+  fileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB
 });
 
-// Generate random friendly password
+/**
+ * =========================
+ * Password generator
+ * =========================
+ */
 const generateFriendlyPassword = () => {
   const adjectives = ['Happy', 'Sunny', 'Brave', 'Calm', 'Gentle', 'Swift', 'Clever', 'Wise', 'Bright', 'Cool', 'Fresh'];
   const nouns = ['Tiger', 'Eagle', 'River', 'Mountain', 'Star', 'Ocean', 'Forest', 'Cloud', 'Moon', 'Rain', 'Sun'];
-  const randomNum = Math.floor(100 + Math.random() * 900); // 3-digit number
-  
+  const randomNum = Math.floor(100 + Math.random() * 900);
+
   const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
   const noun = nouns[Math.floor(Math.random() * nouns.length)];
-  
+
   return `${adjective}${noun}${randomNum}`;
 };
 
+/**
+ * =========================
+ * API Handler
+ * =========================
+ */
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Use multer to handle form data with file upload
   upload.single('profile_image')(req, res, async (err) => {
     if (err) {
       console.error('File upload error:', err);
@@ -60,13 +81,11 @@ export default async function handler(req, res) {
 
     try {
       const { first_name, last_name, email, user_type } = req.body;
-      
-      // Validate required fields
+
       if (!first_name || !last_name || !email || !user_type) {
         return res.status(400).json({ error: 'All fields are required' });
       }
 
-      // Validate email format
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
         return res.status(400).json({ error: 'Invalid email format' });
@@ -74,7 +93,6 @@ export default async function handler(req, res) {
 
       const db = await connectDB();
 
-      // Check if user already exists
       const [existingUsers] = await db.query(
         'SELECT id FROM users WHERE email = ?',
         [email]
@@ -84,27 +102,18 @@ export default async function handler(req, res) {
         return res.status(409).json({ error: 'User with this email already exists' });
       }
 
-      // Generate random password
       const plainPassword = generateFriendlyPassword();
-      
-      // Hash password
-      const saltRounds = 12;
-      const hashedPassword = await bcrypt.hash(plainPassword, saltRounds);
+      const hashedPassword = await bcrypt.hash(plainPassword, 12);
 
-      // Handle profile image
-      let profileImageName = null;
-      if (req.file) {
-        profileImageName = req.file.filename;
-      }
+      const profileImageName = req.file ? req.file.filename : null;
 
-      // Insert user into database
       const [result] = await db.query(
-        `INSERT INTO users (first_name, last_name, email, profile_image, user_type, password, default_password) 
+        `INSERT INTO users 
+         (first_name, last_name, email, profile_image, user_type, password, default_password)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [first_name, last_name, email, profileImageName, user_type, hashedPassword, true]
       );
 
-      // Return success response with generated credentials
       res.status(201).json({
         success: true,
         message: 'User created successfully',
@@ -114,12 +123,12 @@ export default async function handler(req, res) {
           last_name,
           email,
           user_type,
-          profile_image: profileImageName,
+          profile_image: profileImageName
         },
         credentials: {
           username: email,
-          password: plainPassword, // Return plain password only once
-          note: 'Please share these credentials with the user securely'
+          password: plainPassword,
+          note: 'Please share these credentials securely'
         }
       });
 

@@ -1,16 +1,28 @@
 import express from "express";
 import multer from "multer";
 import path from "path";
+import fs from "fs";
 import { connectDB } from "../../config/db/connect.js";
 
 const router = express.Router();
+
+// --------------------------------------------------------
+// Uploads directory (ENV-AWARE, NOTHING ELSE CHANGED)
+// --------------------------------------------------------
+const UPLOADS_DIR = process.env.UPLOADS_DIR
+  ? path.resolve(process.env.UPLOADS_DIR)
+  : path.resolve("uploads");
+
+if (!fs.existsSync(UPLOADS_DIR)) {
+  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+}
 
 // --------------------------------------------------------
 // Multer Setup (FILES → DISK ONLY) - REMOVED SIGNATURE
 // --------------------------------------------------------
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.join(process.cwd(), "uploads"));
+    cb(null, UPLOADS_DIR);
   },
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname);
@@ -67,7 +79,7 @@ const buildInsertData = (body, files, handlerId) => ({
     Number(body.car_id),
     body.renter_full_name,
     body.renter_phone,
-    body.renter_signature || null, // Changed: Get from body, not files
+    body.renter_signature || null,
     getFileName(files, "renter_id_image"),
     getFileName(files, "license_image"),
     body.renter_residence,
@@ -123,7 +135,7 @@ const buildUpdateData = (body, files, handlerId) => ({
     Number(body.car_id),
     body.renter_full_name,
     body.renter_phone,
-    body.renter_signature || null, // Changed: Get from body, not files
+    body.renter_signature || null,
     getFileName(files, "renter_id_image"),
     getFileName(files, "license_image"),
     body.renter_residence,
@@ -158,7 +170,6 @@ router.post("/", uploadFields, async (req, res) => {
 
   try {
     if (editMode) {
-      // Fetch existing rental for audit logging
       const [existingRows] = await db.query(
         "SELECT renter_full_name FROM car_rentals WHERE id = ?",
         [Number(body.id)]
@@ -170,7 +181,6 @@ router.post("/", uploadFields, async (req, res) => {
       const { sql, values } = buildUpdateData(body, files, handlerId);
       const [result] = await db.query(sql, values);
 
-      // AUDIT LOG - Rental Update Operation (WHO updated the rental)
       try {
         const existingRental = existingRows[0];
         const auditDescription = `Rental updated. Renter: ${existingRental.renter_full_name}`;
@@ -193,7 +203,6 @@ router.post("/", uploadFields, async (req, res) => {
         );
       } catch (auditErr) {
         console.error("⚠️ Audit log failed:", auditErr);
-        // Continue - audit failure shouldn't affect client response
       }
 
       return res.json({ 
@@ -203,11 +212,9 @@ router.post("/", uploadFields, async (req, res) => {
       });
     }
 
-    // Insert new rental (NO AUDIT LOG FOR CREATION)
     const { sql, values } = buildInsertData(body, files, handlerId);
     const [result] = await db.query(sql, values);
 
-    // Update car status
     await db.query(
       "UPDATE car_details SET status = 'Rented' WHERE id = ?",
       [Number(body.car_id)]
