@@ -44,6 +44,7 @@ import resolveRentalIssueRoutes from './rentals/resolveRentalIssueRoutes.js';
 import getRentalAuditLogsRoutes from './rentals/getRentalAuditLogsRoutes.js';
 import updateProfileImage from './users/generic/updateProfileImage.js';
 import getPasswordStatusRoutes from './users/staff/getPasswordStatusRoutes.js';
+import updateCarStatusRoutes from './garage/updateCarStatusRoutes.js';
 
 
 
@@ -93,6 +94,7 @@ router.use('/api/resetServiceMileage', checkSession, resetServiceMileageRoutes);
 router.use('/api/updateInsuranceExpiryDate', checkSession, updateInsuranceCOFExpiryDateRoutes);
 router.use('/api/deleteCar', checkSession, deleteCarRoutes);
 router.use('/api/getVehicleAuditLogs', checkSession, getVehicleAuditLogsRoutes);
+router.use('/api/updateCarStatus', checkSession, updateCarStatusRoutes);
 
 
 

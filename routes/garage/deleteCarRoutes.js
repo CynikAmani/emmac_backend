@@ -1,4 +1,3 @@
-// routes/garage/deleteCar/deleteCarRoutes.js
 import express from 'express';
 import { connectDB } from '../../config/db/connect.js';
 
